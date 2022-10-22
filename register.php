@@ -1,18 +1,26 @@
 <?php 
     $successmsg=false;
     $passerror="";
+    $mailerr="";
     if($_SERVER["REQUEST_METHOD"]=="POST"){
         include 'conn.php';
         $name=$_POST['name'];
         $email=$_POST['email'];
         $password=$_POST['password'];
         $cpassword=$_POST['cpassword'];
-        if($cpassword==$password){
-            $insert=mysqli_query($conn,"INSERT INTO users( name, email, password) VALUES ('".$name."','".$email."','".$password."')");
-            if($insert){
+        $hashpass=password_hash($password, PASSWORD_DEFAULT);
+        $checkemail=mysqli_query($conn,"select * from users where email='".$email."'");
+        $count_checkemail=mysqli_num_rows($checkemail);
+        if($cpassword==$password ){
+            if($count_checkemail!=1){
+                $insert=mysqli_query($conn,"INSERT INTO users( name, email, password) VALUES ('".$name."','".$email."','".$hashpass."')");
+                if($insert){
+                    
+                    $successmsg=true;
                 
-                $successmsg=true;
-               
+                }
+            }else{
+                $mailerr="<p style='color:red'>*This email already exist! Try with other one </p>";
             }
             
         }else{ 
@@ -50,6 +58,7 @@
                 <label for="exampleInputEmail1" class="form-label">Email address</label>
                 <input type="email" name="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
                 <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                <?php echo $mailerr;?>
             </div>
             <div class="mb-3">
                 <label for="exampleInputPassword1" class="form-label">Password</label>

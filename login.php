@@ -1,22 +1,28 @@
 <?php 
-$login=false;
-$loginerr=false;
+    $login=false;
+    $loginerr=false;
+    $wrongpass=false;
     $passerror="";
     if($_SERVER["REQUEST_METHOD"]=="POST"){
         include 'conn.php';
         $email=$_POST['email'];
         $password=$_POST['password'];
         
-        $query=mysqli_query($conn,"SELECT * FROM `users` WHERE email='".$email."'&& password='".$password."'");
-        echo "SELECT * FROM `users` WHERE email='".$email."'&& password='".$password."'";
+        $query=mysqli_query($conn,"SELECT * FROM `users` WHERE email='".$email."'");
+        //echo "SELECT * FROM `users` WHERE email='".$email."'&& password='".$password."'";
         $count=mysqli_num_rows($query);
         if($count==1){
             $fetch=mysqli_fetch_assoc($query);
-            $login=true;
-            session_start();
-            $_SESSION['loggedin']=true;
-            $_SESSION['user']=$fetch['id'];
-            header("location:index.php");
+            //$hash=$fetch['password'];
+            if(password_verify($_POST['password'], $fetch['password'])){
+                $login=true;
+                session_start();
+                $_SESSION['loggedin']=true;
+                $_SESSION['user']=$fetch['id'];
+                header("location:index.php");
+            }else{
+                $wrongpass=true;
+            }
         }else{ 
             $loginerr=true;
             
@@ -44,7 +50,14 @@ $loginerr=false;
     if($loginerr){
         echo '
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Wronge credentials!</strong>
+            <strong>User with this email id dose not exist!</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>';
+    }
+    if($wrongpass){
+        echo '
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Wronge Password!</strong>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>';
     }
